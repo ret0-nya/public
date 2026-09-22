@@ -32,6 +32,33 @@ export default function EntryEditor({ date, memberId, initialEntry, initialSha, 
   const [error, setError] = useState(null)
   const fileInputRef = useRef(null)
 
+  function addFiles(files) {
+    const imageFiles = files.filter((file) => file.type.startsWith('image/'))
+    if (imageFiles.length === 0) return
+
+    setNewImages((prev) => [
+      ...prev,
+      ...imageFiles.map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+      })),
+    ])
+  }
+
+  function handlePaste(e) {
+    const items = Array.from(e.clipboardData?.items || [])
+
+    const files = items
+      .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+      .map((item) => item.getAsFile())
+      .filter(Boolean)
+
+    if (files.length === 0) return
+
+    e.preventDefault()
+    addFiles(files)
+  }
+
   function toggle(key) {
     setChecklist((prev) => ({ ...prev, [key]: !prev[key] }))
   }
@@ -97,6 +124,7 @@ export default function EntryEditor({ date, memberId, initialEntry, initialSha, 
         placeholder="오늘 하루는 어땠나요?"
         value={content}
         onChange={(e) => setContent(e.target.value)}
+        onPaste={handlePaste}
       />
 
       <div className="image-upload-row">

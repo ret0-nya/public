@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 import {
-  deleteEntry, getChecklistFields, imagePath, makeCommentId, saveEntry, toggleReaction, withNewComment,
+  deleteEntry, getChecklistFields, imagePath, makeCommentId, saveEntry, toggleReaction, withNewComment, withUpdatedComment,
 } from '../lib/dataModel.js'
 import { resizeImageFile } from '../lib/image.js'
 import Avatar from './Avatar.jsx'
@@ -23,6 +23,16 @@ export default function EntryCard({ entry: initialEntry, sha: initialSha, date, 
   const author = auth.members.find((m) => m.id === memberId)
   const isMine = auth.currentMember?.id === memberId
   const moodTags = entry.moodTags || []
+
+
+  // 추가 기능: 댓글 수정 처리 함수
+  async function handleUpdateComment({ id, text }) {
+    const nextEntry = withUpdatedComment(entry, id, {
+      text,
+      updatedAt: new Date().toISOString(),
+    })
+    await persist(nextEntry)
+  }
 
   async function persist(nextEntry) {
     const { entry: saved, sha: nextSha } = await saveEntry(auth.client, date, memberId, nextEntry, sha)
@@ -153,7 +163,10 @@ export default function EntryCard({ entry: initialEntry, sha: initialSha, date, 
       <ReactionBar entry={entry} onToggle={handleToggleReaction} />
 
       <div className="comment-section">
-        <CommentList comments={entry.comments} />
+        <CommentList comments={entry.comments}
+          currentMemberId={auth.currentMember?.id}
+          onUpdateComment={handleUpdateComment}
+          />
         <CommentForm onSubmit={handleAddComment} />
       </div>
 
