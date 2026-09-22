@@ -217,3 +217,15 @@ export function makeCommentId() {
   if (window.crypto?.randomUUID) return window.crypto.randomUUID()
   return `c-${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
+
+
+
+// 추가 기능: 댓글 수정 헬퍼(id 가져오기, data 수정)
+export function withUpdatedComment(entry, commentId, patch) {
+  return {
+    ...entry,
+    comments: (entry.comments || []).map((comment) =>
+      comment.id === commentId ? { ...comment, ...patch } : comment
+    ),
+  }
+}
